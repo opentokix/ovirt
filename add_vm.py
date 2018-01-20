@@ -187,7 +187,7 @@ def add_nic_to_vm(api, options):
     profiles_service = api.system_service().vnic_profiles_service()
     profile_id = None
     for profile in profiles_service.list():
-        if profile.name == 'ovirtmgmt':
+        if profile.name == options['network_name']:
             profile_id = profile.id
             break
     nics_service = vms_service.vm_service(vm.id).nics_service()
@@ -214,6 +214,7 @@ def main(opts):
     options = construct_credentials(opts)
     options['num_cpus'] = int(opts.num_cpus)
     options['ram_amount'] = int(opts.ram_amount)
+    options['network_name'] = opts.network_name
     if opts.vm_name:
         options['vm_name'] = opts.vm_name
     else:
@@ -250,5 +251,6 @@ if __name__ == '__main__':
     p.add_option("-z", "--credentials", dest="credentials", help="Credentials location")
     p.add_option("-s", "--system", dest="vm_dist", help="Linux Dist (rhel_7x64, rhel_6x64, debian7)", default='rhel_7x64')
     p.add_option("--usage", action="store_true", dest="usage", help="Show verbose usage instructions")
+    p.add_option("-N", "--network", dest="network_name", default="ovirtmgmt", help="Name of the network profile.")
     (opts, args) = p.parse_args()
     main(opts)

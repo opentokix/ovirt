@@ -19,6 +19,8 @@ def lists_vms(api, options):
         print e
         sys.exit(1)
     for vm in vms:
+        for k in vm:
+            print vm[k]
         print("%s: %s" % (vm.name, vm.id))
 
 
