@@ -56,9 +56,67 @@ def usage():
         user=admin@internal
         pass=abc123
 
+    Guest Operating system options:
+        rhel_7x64, rhel_7_ppc64, rhel_6_ppc64, rhel_6x64, rhel_4x64, rhel_6, rhel_5x64,
+        rhel_5, rhel_4, rhel_3, debian_7, ubuntu_14_04, ubuntu_14_04_ppc64, ubuntu_13_10,
+        ubuntu_13_04, ubuntu_12_10, ubuntu_12_04, other_linux_ppc64, other_linux,
+        other_ppc64, other, freebsdx64, freebsd, sles_11, sles_11_ppc64, windows_2003x64,
+        windows_10, windows_2008x64, windows_2008R2x64, windows_2012x64, windows_8x64,
+        windows_2003, windows_10x64, windows_2008, windows_xp, windows_7, windows_8,
+        windows_2012R2x64, windows_2008r2x64, windows_7x64
+
     Tested on ovirt 4.2.0.2-1.el7.centos
     """
     print usage.__doc__
+    sys.exit(0)
+
+
+def print_os_list():
+    """List of possible Guest OS:s.
+
+    rhel_7x64
+    rhel_7_ppc64
+    rhel_6_ppc64
+    rhel_6x64
+    rhel_4x64
+    rhel_6
+    rhel_5x64
+    rhel_5
+    rhel_4
+    rhel_3
+    debian_7
+    ubuntu_14_04
+    ubuntu_14_04_ppc64
+    ubuntu_13_10
+    ubuntu_13_04
+    ubuntu_12_10
+    ubuntu_12_04
+    other_linux_ppc64
+    other_linux
+    other_ppc64
+    other
+    freebsdx64
+    freebsd
+    sles_11
+    sles_11_ppc64
+    windows_2003x64
+    windows_10
+    windows_2008x64
+    windows_2008R2x64
+    windows_2012x64
+    windows_8x64
+    windows_2003
+    windows_10x64
+    windows_2008
+    windows_xp
+    windows_7
+    windows_8
+    windows_2012R2x64
+    windows_2008r2x64
+    windows_7x64
+
+    """
+    print print_os_list.__doc__
     sys.exit(0)
 
 
@@ -155,7 +213,7 @@ def add_disk_to_vm(api, options):
                     provisioned_size=10 * 2**30,
                     storage_domains=[
                         types.StorageDomain(
-                            name='hypercube1',
+                            name=options['storagedomain'],
                         ),
                     ],
                 ),
@@ -207,14 +265,67 @@ def add_nic_to_vm(api, options):
         sys.exit(1)
 
 
+def start_vm_with_pxe(api, options):
+    """Add PXE Boot option to vm."""
+    search_name = "name=" + options['vm_name']
+    vms_service = api.system_service().vms_service()
+    vm = vms_service.list(search=search_name)[0]
+    vm_service = vms_service.vm_service(vm.id)
+    vm_service.start(
+        vm=types.Vm(
+            os=types.OperatingSystem(
+                boot=types.Boot(
+                    devices=[
+                        types.BootDevice.HD,
+                        types.BootDevice.NETWORK]
+                )
+            )
+        )
+    )
+
+
+def start_vm_with_cdrom(api, options):
+    """Add CDROM and boot vm."""
+    search_name = "name=" + options['vm_name']
+    vms_service = api.system_service().vms_service()
+    vm = vms_service.list(search=search_name)[0]
+    vm_service = vms_service.vm_service(vm.id)
+    cdroms_service = vm_service.cdroms_service()
+    cdrom = cdroms_service.list()[0]
+    cdrom_service = cdroms_service.cdrom_service(cdrom.id)
+    cdrom_service.update(
+        cdrom=types.Cdrom(
+            file=types.File(
+                id=options['cdrom']
+            ),
+        ),
+        current=False,
+    )
+    vm_service.start(
+        vm=types.Vm(
+            os=types.OperatingSystem(
+                boot=types.Boot(
+                    devices=[
+                        types.BootDevice.HD,
+                        types.BootDevice.CDROM]
+                )
+            )
+        )
+    )
+
+
 def main(opts):
     """Magic main."""
     if opts.usage:
         usage()
+    if opts.vm_dist == 'list':
+        print_os_list()
+
     options = construct_credentials(opts)
     options['num_cpus'] = int(opts.num_cpus)
     options['ram_amount'] = int(opts.ram_amount)
     options['network_name'] = opts.network_name
+    options['storagedomain'] = opts.storagedomain
     if opts.vm_name:
         options['vm_name'] = opts.vm_name
     else:
@@ -235,8 +346,15 @@ def main(opts):
     add_vm(api, options)
     add_nic_to_vm(api, options)
     add_disk_to_vm(api, options)
-    api.close()
 
+    if opts.pxe:
+        start_vm_with_pxe(api, options)
+    elif opts.cdrom:
+        options['cdrom'] = opts.cdrom
+        start_vm_with_cdrom(api, options)
+    else:
+        pass
+    api.close()
 
 if __name__ == '__main__':
     p = OptionParser()
@@ -249,8 +367,11 @@ if __name__ == '__main__':
     p.add_option("-o", "--osdisk", dest="osdisk", help="Amount of disk in GB", default=30)
     p.add_option("-d", "--datacenter", dest="vm_dc", help="Target datacenter", default="Hypercube1")
     p.add_option("-z", "--credentials", dest="credentials", help="Credentials location")
-    p.add_option("-s", "--system", dest="vm_dist", help="Linux Dist (rhel_7x64, rhel_6x64, debian7)", default='rhel_7x64')
+    p.add_option("-s", "--system", dest="vm_dist", help="Linux Dist (rhel_7x64, rhel_6x64, debian7). Get complete list with --system list", default='rhel_7x64')
     p.add_option("--usage", action="store_true", dest="usage", help="Show verbose usage instructions")
     p.add_option("-N", "--network", dest="network_name", default="ovirtmgmt", help="Name of the network profile.")
+    p.add_option("-S", "--storagedomain", dest="storagedomain", default="hypercube1", help="Name of the storage domain.")
+    p.add_option("--pxe", action="store_true", dest="pxe", help="Add boot option pxe and start the VM")
+    p.add_option("--cdrom", dest="cdrom", help="Add boot option cdrom and start the VM. Make sure the ISO is uploaded.")
     (opts, args) = p.parse_args()
     main(opts)
