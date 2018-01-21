@@ -69,6 +69,12 @@ This is the format of the csv-file:
     ./remove_vm.py -z /home/peter/credentials/ovirt_api.conf -n foo3
 
 
+### Requirements
+
+Debian/Ubuntu: sudo apt-get -y install python-pycurl python-libxml2 libxml2-dev
+Rhel/CentOS: sudo yum install -y libxml2-python.x86_64 libxml2-devel python-pycurl python python-pip
+
+pip install -r requirements.txt
 
 #### License
 
