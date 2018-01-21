@@ -1,0 +1,4 @@
+vm_name,num_cpus,ram_amount,vm_dc,storagedomain,os_disk,os_type,BootDevice,network_name
+foo,1,1,Hypercube1,nvme_small,10,debian_7,pxe,ovirtmgmt
+foo2,1,1,Hypercube1,hypercube1,30,rhel_7x64,pxe,ovirtmgmt
+foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt
