@@ -210,7 +210,7 @@ def add_disk_to_vm(api, options):
                     name='os_disk',
                     description='OS',
                     format=types.DiskFormat.COW,
-                    provisioned_size=10 * 2**30,
+                    provisioned_size=options['os_disk'] * 2**30,
                     storage_domains=[
                         types.StorageDomain(
                             name=options['storagedomain'],
@@ -332,6 +332,7 @@ def main(opts):
         options['vm_name'] = str(uuid.uuid1())
     options['vm_dc'] = opts.vm_dc
     options['os_type'] = opts.vm_dist
+    options['os_disk'] = int(opts.osdisk)
     options['vcpus'] = types.CpuTopology(cores=options['num_cpus'], sockets=1)
     options['vmem'] = int(options['ram_amount']) * 2**30
     try:
