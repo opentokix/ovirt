@@ -78,7 +78,7 @@ The ovirtsk4 has quite a few dependencies, YMMV with these instructions. Tested 
 
     Rhel/CentOS: sudo yum install -y libxml2-python.x86_64 libxml2-devel python-pycurl python python-pip
 
-pip install -r requirements.txt
+    pip install -r requirements.txt
 
 #### License
 
