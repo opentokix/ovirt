@@ -71,8 +71,12 @@ This is the format of the csv-file:
 
 ### Requirements
 
-Debian/Ubuntu: sudo apt-get -y install python-pycurl python-libxml2 libxml2-dev
-Rhel/CentOS: sudo yum install -y libxml2-python.x86_64 libxml2-devel python-pycurl python python-pip
+The ovirtsk4 has quite a few dependencies, YMMV with these instructions. Tested on Ubuntu.
+
+    Debian/Ubuntu: sudo apt-get -y install python-pycurl python-libxml2 libxml2-dev
+
+
+    Rhel/CentOS: sudo yum install -y libxml2-python.x86_64 libxml2-devel python-pycurl python python-pip
 
 pip install -r requirements.txt
 
