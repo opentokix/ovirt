@@ -16,6 +16,11 @@ Options:
     -d, --datacenter: Name of datacenter (default: Hypercube1)
     -z, --credentials: Location and name of credentials ini-file.
     -s, --system: Operating system (default: rhel_7x64)
+    -N, --network Name of the network to use
+    -S, --storagedomain Name of the storage domain
+    --pxe: Boot the system with pxe
+    --cdrom: Boot the system from cdrom with name.iso
+    --csv: Create and start VM's from a CSV File.
     -h, --help: This help text
 
 Credentials can be provided in various ways:
@@ -42,6 +47,19 @@ Tested on ovirt 4.2.0.2-1.el7.centos
 **Add a vm named bamboozle with 4 cpus and 32 GB or ram and 30 GB OS disk with rhel 7 x64 in DC Hypercube1**
 
     ./add_vm.py --name bamboozle --cpus 3 --ram 32 --osdisk 30 -z /home/peter/credentials/ovirt_api.conf -d Hypercube1 -l rhel_7x64
+
+
+### Add host with a CSV File
+
+If you are going to add a large number of hosts in many datacenters. You can add them with a csv file.
+This functionality is not heavily tested and might break.
+
+This is the format of the csv-file:
+
+    vm_name,num_cpus,ram_amount,vm_dc,storagedomain,os_disk,os_type,BootDevice,network_name
+    foo,1,1,Hypercube1,nvme_small,10,debian_7,pxe,ovirtmgmt
+    foo2,1,1,Hypercube1,hypercube1,30,rhel_7x64,pxe,ovirtmgmt
+    foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt
 
 
 #### License

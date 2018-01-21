@@ -26,6 +26,7 @@ import os
 import sys
 import uuid
 import getpass
+import csv
 
 
 def usage():
@@ -42,6 +43,11 @@ def usage():
         -d, --datacenter: Name of datacenter (default: Hypercube1)
         -z, --credentials: Location and name of credentials ini-file.
         -s, --system: Operating system (default: rhel_7x64)
+        -N, --network Name of the network to use
+        -S, --storagedomain Name of the storage domain
+        --pxe: Boot the system with pxe
+        --cdrom: Boot the system from cdrom with name.iso
+        --csv: Create and start VM's from a CSV File.
         -h, --help: This help text
 
     Credentials can be provided in various ways:
@@ -55,6 +61,12 @@ def usage():
         url=https://hostname.domain.tld/ovirt-engine/api
         user=admin@internal
         pass=abc123
+
+    Example of CSV File:
+        vm_name,num_cpus,ram_amount,vm_dc,storagedomain,os_disk,os_type,BootDevice,network_name
+        foo,1,1,Hypercube1,nvme_small,10,debian_7,pxe,ovirtmgmt
+        foo2,1,1,Hypercube1,hypercube1,30,rhel_7x64,pxe,ovirtmgmt
+        foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt
 
     Guest Operating system options:
         rhel_7x64, rhel_7_ppc64, rhel_6_ppc64, rhel_6x64, rhel_4x64, rhel_6, rhel_5x64,
@@ -197,6 +209,43 @@ def add_vm(api, options):
         sys.exit(1)
 
 
+def create_from_csv(api, options, csv_file):
+    """Create virtual machines from csv definition."""
+    print "Using hosts from: %s" % csv_file
+    source = csv.DictReader(open(csv_file), delimiter=',')
+    for s in source:
+        if len(s['vm_name']) == 0:
+            print "ERROR: Name is required."
+            sys.exit(1)
+        options = s
+        bdevice = s.get('BootDevice')
+        if bdevice == 'pxe':
+            options['pxe'] = True
+        elif bdevice.find("iso") != -1:
+            options['cdrom'] = bdevice
+        else:
+            print "Boot device is required"
+            sys.exit(1)
+        options['vcpus'] = types.CpuTopology(cores=int(options['num_cpus']), sockets=1)
+        options['vmem'] = int(options['ram_amount']) * 2**30
+        options['os_disk'] = int(options['os_disk'])
+        msg = "Adding VM: %s: " % options['vm_name']
+        sys.stdout.write(msg)
+        sys.stdout.flush()
+        create_vm(api, options)
+        sys.stdout.write("done! Starting: ")
+        sys.stdout.flush()
+        if options.get('pxe', False) is True:
+            start_vm_with_pxe(api, options)
+        elif options.get('cdrom') is not None:
+            start_vm_with_cdrom(api, options)
+        else:
+            pass
+        print "done!"
+    api.close()
+    sys.exit(0)
+
+
 def add_disk_to_vm(api, options):
     """Add disk to vm."""
     search_name = "name=" + options['vm_name']
@@ -314,14 +363,32 @@ def start_vm_with_cdrom(api, options):
     )
 
 
+def create_vm(api, options):
+    """Creating VM, Adding OS disk and nic."""
+    add_vm(api, options)
+    add_nic_to_vm(api, options)
+    add_disk_to_vm(api, options)
+
+
 def main(opts):
     """Magic main."""
     if opts.usage:
         usage()
     if opts.vm_dist == 'list':
         print_os_list()
-
     options = construct_credentials(opts)
+    try:
+        api = sdk.Connection(options['url'],
+                             options['username'],
+                             options['password'],
+                             insecure=True)
+    except Exception as e:
+        print "Can't make API Connection: %s" % str(e)
+        sys.exit(1)
+
+    if opts.csv_file:
+        create_from_csv(api, options, str(opts.csv_file))
+
     options['num_cpus'] = int(opts.num_cpus)
     options['ram_amount'] = int(opts.ram_amount)
     options['network_name'] = opts.network_name
@@ -335,18 +402,8 @@ def main(opts):
     options['os_disk'] = int(opts.osdisk)
     options['vcpus'] = types.CpuTopology(cores=options['num_cpus'], sockets=1)
     options['vmem'] = int(options['ram_amount']) * 2**30
-    try:
-        api = sdk.Connection(options['url'],
-                             options['username'],
-                             options['password'],
-                             insecure=True)
-    except Exception as e:
-        print "Can't make API Connection: %s" % str(e)
-        sys.exit(1)
 
-    add_vm(api, options)
-    add_nic_to_vm(api, options)
-    add_disk_to_vm(api, options)
+    create_vm(api, options)
 
     if opts.pxe:
         start_vm_with_pxe(api, options)
@@ -374,5 +431,6 @@ if __name__ == '__main__':
     p.add_option("-S", "--storagedomain", dest="storagedomain", default="hypercube1", help="Name of the storage domain.")
     p.add_option("--pxe", action="store_true", dest="pxe", help="Add boot option pxe and start the VM")
     p.add_option("--cdrom", dest="cdrom", help="Add boot option cdrom and start the VM. Make sure the ISO is uploaded.")
+    p.add_option("--csv", dest="csv_file", help="Read a list of machines to create from csv file.")
     (opts, args) = p.parse_args()
     main(opts)
