@@ -62,6 +62,14 @@ This is the format of the csv-file:
     foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt
 
 
+### Remove VM
+
+    Turn off and remove VM.
+
+    ./remove_vm.py -z /home/peter/credentials/ovirt_api.conf -n foo3
+
+
+
 #### License
 
 This program is free software: you can redistribute it and/or modify
