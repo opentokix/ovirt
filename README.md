@@ -5,29 +5,29 @@
 
 Tool will add a VM to ovirt or rhev 4.x using the API.
 
-Options:
-    -u, --user: ovirt username
-    -U, --url: url of the ovirt manager (https://hostname.domain.tld/ovirt-engine/api)
-    -p, --password: your password
-    -n, --name: name of the vm you want to create (defaults to uuid)
-    -c, --cpus: Number of cpu cores (default: 1)
-    -r, --ram: Amount of ram in GB (default: 2 GB)
-    -o, --osdisk: Size of OS disk in GB (default: 30 GB)
-    -d, --datacenter: Name of datacenter (default: Hypercube1)
-    -z, --credentials: Location and name of credentials ini-file.
-    -s, --system: Operating system (default: rhel_7x64)
-    -N, --network Name of the network to use
-    -S, --storagedomain Name of the storage domain
-    --pxe: Boot the system with pxe
-    --cdrom: Boot the system from cdrom with name.iso
-    --csv: Create and start VM's from a CSV File.
-    -h, --help: This help text
+    Options:
+        -u, --user: ovirt username
+        -U, --url: url of the ovirt manager (https://hostname.domain.tld/ovirt-engine/api)
+        -p, --password: your password
+        -n, --name: name of the vm you want to create (defaults to uuid)
+        -c, --cpus: Number of cpu cores (default: 1)
+        -r, --ram: Amount of ram in GB (default: 2 GB)
+        -o, --osdisk: Size of OS disk in GB (default: 30 GB)
+        -d, --datacenter: Name of datacenter (default: Hypercube1)
+        -z, --credentials: Location and name of credentials ini-file.
+        -s, --system: Operating system (default: rhel_7x64)
+        -N, --network Name of the network to use
+        -S, --storagedomain Name of the storage domain
+        --pxe: Boot the system with pxe
+        --cdrom: Boot the system from cdrom with name.iso
+        --csv: Create and start VM's from a CSV File.
+        -h, --help: This help text
 
 Credentials can be provided in various ways:
-    Command line with -u, -p
-    Environment variables: ovirt_user, ovirt_password, ovirt_url
-    INI file as described below
-    And if none of the above, interactive prompt for hostname + password.
+    * Command line with -u, -p
+    * Environment variables: ovirt_user, ovirt_password, ovirt_url
+    * INI file as described below
+    * And if none of the above, interactive prompt for hostname + password.
 
 Example credentials ini:
 
