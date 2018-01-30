@@ -21,7 +21,7 @@ def get_vm_id(api, cluster_id, name):
 def get_dc_id(api, name):
     search_name = "name=%s" % name
     dcs_service = api.system_service().data_centers_service()
-    dc = dcs_service.list(search="id='e5c05399-2099-4893-bade-61eb9d72dd82'")[0]
+    dc = dcs_service.list(search=search_name)[0]
     return dc.id
 
 
