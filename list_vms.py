@@ -16,7 +16,7 @@ def lists_vms(api, options):
     try:
         vms = vms_service.list()
     except Exception as e:
-        print e
+        print "List VM error: %s:" % e
         sys.exit(1)
     for vm in vms:
         print("%s: %s, %s, %s" % (vm.name, vm.id, vm.os.type, vm.memory))
