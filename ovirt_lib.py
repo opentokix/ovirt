@@ -10,14 +10,55 @@ import os
 import sys
 import getpass
 
-# def get_vm_id(api, name):
 
-# def add_disk_to_vm(api, id):
+def get_vm_id(api, cluster_id, name):
+    search_name = "name=%s" % name
+    vms_service = api.system_service().vms_service()
+    vm = vms_service.list(search=search_name)[0]
+    return vm.id
+
+
+def get_dc_id(api, name):
+    search_name = "name=%s" % name
+    dcs_service = api.system_service().data_centers_service()
+    dc = dcs_service.list(search="id='e5c05399-2099-4893-bade-61eb9d72dd82'")[0]
+    return dc.id
+
+
+def get_cluster_id(api, name):
+    search_name = "name=%s" % name
+    clusters_service = api.system_service().clusters_service()
+    cluster = clusters_service.list(search=search_name)[0]
+    print cluster.data_center.id
+    return cluster.id
+
+
+def add_vm(api, cluster_id, options):
+    """Adding a VM."""
+    vms_service = api.system_service().vms_service()
+    try:
+        vms_service.add(
+            types.Vm(
+                name=options['vm_name'],
+                memory=options['vmem'],
+                cpu=types.Cpu(topology=types.CpuTopology(cores=int(options['vcpus']), sockets=1)),
+                type=types.VmType('server'),
+                os=types.OperatingSystem(type=options['os_type']),
+                cluster=types.Cluster(
+                    id=cluster_id,
+                ),
+                template=types.Template(name='Blank',),
+            ),
+        )
+    except Exception as e:
+        print "Can't add VM: %s" % str(e)
+        api.close()
+        sys.exit(1)
 
 
 def construct_credentials(opts):
     """Construct credentials. First read environment, then command line, lastly ini."""
-
+    raw_credentials = { 'username': None, 'password': None, 'url': None}
     try:
         raw_credentials['username'] = os.environ['ovirt_user']
     except KeyError:
@@ -55,7 +96,7 @@ def construct_credentials(opts):
         except:
             pass
     for key in raw_credentials:
-        if len(raw_credentials[key]) == 0:
+        if raw_credentials[key] is None:
             if key == "username":
                 # this will never trigger, here for future use maybe
                 raw_credentials['username'] = raw_input("Username: ")
@@ -64,7 +105,7 @@ def construct_credentials(opts):
             if key == "url":
                 hostname = raw_input("Hostname of ovirt manager: ")
                 raw_credentials['url'] = "https://%s/ovirt-engine/api" % hostname
-    return raw_credentials
+    return raw_credentials, opts
 
 
 def add_disk_to_vm(api, options):
