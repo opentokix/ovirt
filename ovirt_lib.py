@@ -158,6 +158,51 @@ def add_nic_to_instance(api, vm_id, vnic_id, nic_name='nic1'):
         sys.exit(1)
 
 
+def start_vm_with_pxe(api, vm_id):
+    """Add PXE Boot option to vm."""
+    vms_service = api.system_service().vms_service()
+    vm_service = vms_service.vm_service(vm_id)
+    vm_service.start(
+        vm=types.Vm(
+            os=types.OperatingSystem(
+                boot=types.Boot(
+                    devices=[
+                        types.BootDevice.HD,
+                        types.BootDevice.NETWORK]
+                )
+            )
+        )
+    )
+
+
+def start_vm_with_cdrom(api, vm_id, isoname='ks.iso'):
+    """Add CDROM and boot vm."""
+    vms_service = api.system_service().vms_service()
+    vm_service = vms_service.vm_service(vm_id)
+    cdroms_service = vm_service.cdroms_service()
+    cdrom = cdroms_service.list()[0]
+    cdrom_service = cdroms_service.cdrom_service(cdrom.id)
+    cdrom_service.update(
+        cdrom=types.Cdrom(
+            file=types.File(
+                id=isoname
+            ),
+        ),
+        current=False,
+    )
+    vm_service.start(
+        vm=types.Vm(
+            os=types.OperatingSystem(
+                boot=types.Boot(
+                    devices=[
+                        types.BootDevice.HD,
+                        types.BootDevice.CDROM]
+                )
+            )
+        )
+    )
+
+
 def construct_credentials(opts):
     """Construct credentials. First read environment, then command line, lastly ini."""
     raw_credentials = {'username': None, 'password': None, 'url': None}
