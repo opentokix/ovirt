@@ -9,18 +9,18 @@ def main(opts):
     """Magic main."""
     (api, options) = create_api_connection(opts)
 
-    cluster = 'Tele2Cloud2'
-    dc = 'HGD'
+    cluster = 'Hypercube1'
+    dc = 'Hypercube1'
     cluster_id = get_cluster_id(api, cluster)
     dc_id = get_dc_id(api, dc)
-    vlan_name = 'VLAN10'
+    vlan_name = 'ovirtmngt'
 
-    options['vm_name'] = 'peter-script-test-01'
+    options['vm_name'] = 'script-test-01'
     options['vmem'] = 2 * 2**30
     options['vcpus'] = 2
     options['os_type'] = 'rhel_7x64'
 
-    get_vnic_id(api, dc_id, 'VLAN10')
+    get_vnic_id(api, dc_id, 'ovirtdefault')
 
     # add_vm(api, cluster_id, options)
     # vm_id = get_vm_id(api, cluster_id, options['vm_name'])
