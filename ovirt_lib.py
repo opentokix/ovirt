@@ -5,32 +5,57 @@ import ovirtsdk4 as sdk
 import ovirtsdk4.types as types
 import time
 import ConfigParser
-from optparse import OptionParser
 import os
 import sys
 import getpass
+import random
 
 
 def get_vm_id(api, cluster_id, name):
+    """Get id of vm in specific cluster."""
     search_name = "name=%s" % name
     vms_service = api.system_service().vms_service()
-    vm = vms_service.list(search=search_name)[0]
+    try:
+        vm = vms_service.list(search=search_name)[0]
+    except:
+        return None
     return vm.id
 
 
 def get_dc_id(api, name):
+    """Get id of dc from name."""
     search_name = "name=%s" % name
     dcs_service = api.system_service().data_centers_service()
-    dc = dcs_service.list(search=search_name)[0]
+    try:
+        dc = dcs_service.list(search=search_name)[0]
+    except:
+        return None
     return dc.id
 
 
 def get_cluster_id(api, name):
+    """Get id of cluster from name."""
     search_name = "name=%s" % name
     clusters_service = api.system_service().clusters_service()
-    cluster = clusters_service.list(search=search_name)[0]
-    print cluster.data_center.id
+    try:
+        cluster = clusters_service.list(search=search_name)[0]
+    except:
+        return None
     return cluster.id
+
+
+def get_vnic_id(api, dc_id, name):
+    """Get vNic id for network name in a DC."""
+    dcs_service = api.system_service().data_centers_service()
+    dc_service = dcs_service.data_center_service(dc_id)
+    attached_vnic_service = dc_service.networks_service()
+    for service in attached_vnic_service.list():
+        if service.name == name:
+            network_id = service.id
+    profiles_service = api.system_service().vnic_profiles_service()
+    for profile in profiles_service.list():
+        if profile.name == name and profile.network.id == network_id:
+            return profile.id
 
 
 def add_vm(api, cluster_id, options):
@@ -56,9 +81,86 @@ def add_vm(api, cluster_id, options):
         sys.exit(1)
 
 
+def get_random_storagedomain(api, dc_id):
+    """Return a random storage domain above 1TB free space."""
+    sd_list = []
+    dcs_service = api.system_service().data_centers_service()
+    dc_service = dcs_service.data_center_service(dc_id)
+    attached_sds_service = dc_service.storage_domains_service()
+    sds = attached_sds_service.list()
+    for s in range(len(sds)):
+        if sds[s].name.find('ssd') != -1:
+            avail = int(sds[s].available / 1073741824)
+            if avail > 999:
+                sd_list.append(sds[s].id)
+            else:
+                print "WARNING: %s is under 1TB free space" % (sds[s].name)
+    if len(sd_list) == 0:
+        print "ERROR: No storage domain available"
+        sys.exit(1)
+    return random.choice(sd_list)
+
+
+def add_disk_to_instance(api, vm_id, storage_domain, size, name, boot=True):
+    """Add disk to VM by id."""
+    vms_service = api.system_service().vms_service()
+    disk_attachments_service = vms_service.vm_service(vm_id).disk_attachments_service()
+    try:
+        disk_attachment = disk_attachments_service.add(
+            types.DiskAttachment(
+                disk=types.Disk(
+                    name=name,
+                    description=name,
+                    format=types.DiskFormat.COW,
+                    provisioned_size=size * 2**30,
+                    storage_domains=[
+                        types.StorageDomain(
+                            id=storage_domain,
+                        ),
+                    ],
+                ),
+                interface=types.DiskInterface.VIRTIO,
+                bootable=boot,
+                active=True,
+            ),
+        )
+    except Exception as e:
+        print "Can't add Disk: %s" % str(e)
+        api.close()
+        sys.exit(1)
+    disks_service = api.system_service().disks_service()
+    disk_service = disks_service.disk_service(disk_attachment.disk.id)
+    while True:
+        time.sleep(5)
+        disk = disk_service.get()
+        if disk.status == types.DiskStatus.OK:
+            break
+
+
+def add_nic_to_instance(api, vm_id, vnic_id, nic_name='nic1'):
+    """Add nic to vm."""
+    vms_service = api.system_service().vms_service()
+    """Get id of network."""
+    nics_service = vms_service.vm_service(vm_id).nics_service()
+    try:
+        nics_service.add(
+            types.Nic(
+                name=nic_name,
+                description='My network interface card',
+                vnic_profile=types.VnicProfile(
+                    id=vnic_id,
+                ),
+            ),
+        )
+    except Exception as e:
+        print "Can't add NIC: %s" % str(e)
+        api.close()
+        sys.exit(1)
+
+
 def construct_credentials(opts):
     """Construct credentials. First read environment, then command line, lastly ini."""
-    raw_credentials = { 'username': None, 'password': None, 'url': None}
+    raw_credentials = {'username': None, 'password': None, 'url': None}
     try:
         raw_credentials['username'] = os.environ['ovirt_user']
     except KeyError:
@@ -108,12 +210,8 @@ def construct_credentials(opts):
     return raw_credentials, opts
 
 
-def add_disk_to_vm(api, options):
-    print "Future"
-    return 0
-
-
 def create_api_connection(opts):
+    """Create API Connection."""
     (options, opts) = construct_credentials(opts)
     url = options['url']
     user = options['username']
