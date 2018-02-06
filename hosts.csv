@@ -1,4 +1,4 @@
-vm_name,num_cpus,ram_amount,vm_dc,storagedomain,os_disk,os_type,BootDevice,network_name,Disk1,Disk2,Disk3,Disk4
-foo,1,1,Hypercube1,nvme_small,10,debian_7,pxe,ovirtmgmt,10G:app,None,None,None
-foo2,1,1,Hypercube1,hypercube1,30,rhel_7x64,pxe,ovirtmgmt,10G:app,10G:misc,None,None
-foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt,None,None,None,None
+vm_name,num_cpus,ram_amount,dc,cluster,storagedomain,os_disk,os_type,BootDevice,network_name,Disk1,Disk2,Disk3,Disk4
+name01,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_7x64,ks.iso,VLAN10,10:app,None,None,None
+name02,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_7x64,ks.iso,VLAN10,10:app,10:misc,10:app2,10:misc2
+name03,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_6x64,pxe,VLAN200,None,None,20:misc2,None
