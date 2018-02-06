@@ -209,43 +209,6 @@ def add_vm(api, options):
         sys.exit(1)
 
 
-def create_from_csv(api, options, csv_file):
-    """Create virtual machines from csv definition."""
-    print "Using hosts from: %s" % csv_file
-    source = csv.DictReader(open(csv_file), delimiter=',')
-    for s in source:
-        if len(s['vm_name']) == 0:
-            print "ERROR: Name is required."
-            sys.exit(1)
-        options = s
-        bdevice = s.get('BootDevice')
-        if bdevice == 'pxe':
-            options['pxe'] = True
-        elif bdevice.find("iso") != -1:
-            options['cdrom'] = bdevice
-        else:
-            print "Boot device is required"
-            sys.exit(1)
-        options['vcpus'] = types.CpuTopology(cores=int(options['num_cpus']), sockets=1)
-        options['vmem'] = int(options['ram_amount']) * 2**30
-        options['os_disk'] = int(options['os_disk'])
-        msg = "Adding VM: %s: " % options['vm_name']
-        sys.stdout.write(msg)
-        sys.stdout.flush()
-        create_vm(api, options)
-        sys.stdout.write("done! Starting: ")
-        sys.stdout.flush()
-        if options.get('pxe', False) is True:
-            start_vm_with_pxe(api, options)
-        elif options.get('cdrom') is not None:
-            start_vm_with_cdrom(api, options)
-        else:
-            pass
-        print "done!"
-    api.close()
-    sys.exit(0)
-
-
 def add_disk_to_vm(api, options):
     """Add disk to vm."""
     search_name = "name=" + options['vm_name']
@@ -387,7 +350,7 @@ def main(opts):
         sys.exit(1)
 
     if opts.csv_file:
-        create_from_csv(api, options, str(opts.csv_file))
+        print "Deprecated"
 
     options['num_cpus'] = int(opts.num_cpus)
     options['ram_amount'] = int(opts.ram_amount)
