@@ -49,17 +49,17 @@ Tested on ovirt 4.2.0.2-1.el7.centos
     ./add_vm.py --name bamboozle --cpus 3 --ram 32 --osdisk 30 -z /home/peter/credentials/ovirt_api.conf -d Hypercube1 -l rhel_7x64
 
 
-### Add host with a CSV File
+### Add host with a CSV File (create_from_csv.py) --csv ins add_vm.py id Deprecated
 
 If you are going to add a large number of hosts in many datacenters. You can add them with a csv file.
 This functionality is not heavily tested and might break.
 
 This is the format of the csv-file:
 
-    vm_name,num_cpus,ram_amount,vm_dc,storagedomain,os_disk,os_type,BootDevice,network_name
-    foo,1,1,Hypercube1,nvme_small,10,debian_7,pxe,ovirtmgmt
-    foo2,1,1,Hypercube1,hypercube1,30,rhel_7x64,pxe,ovirtmgmt
-    foo3,2,1,Hypercube1,hypercube1,20,rhel_6x64,ubuntu.iso,ovirtmgmt
+    vm_name,num_cpus,ram_amount,dc,cluster,storagedomain,os_disk,os_type,BootDevice,network_name,Disk1,Disk2,Disk3,Disk4
+    name01,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_7x64,ks.iso,VLAN10,10:app,None,None,None
+    name02,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_7x64,ks.iso,VLAN10,10:app,10:misc,10:app2,10:misc2
+    name03,1,2,DATACENTER,CLUSTERNAMEINDC,random,30,rhel_6x64,pxe,VLAN200,None,None,20:misc2,None
 
 
 ### Remove VM
