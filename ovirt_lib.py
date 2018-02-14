@@ -119,7 +119,7 @@ def add_disk_to_instance(api, vm_id, storage_domain, size, name, boot=True):
                         ),
                     ],
                 ),
-                interface=types.DiskInterface.VIRTIO,
+                interface=types.DiskInterface.VIRTIO_SCSI,
                 bootable=boot,
                 active=True,
             ),
