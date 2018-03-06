@@ -113,6 +113,7 @@ def add_disk_to_instance(api, vm_id, storage_domain, size, name, boot=True):
                     description=name,
                     format=types.DiskFormat.COW,
                     provisioned_size=size * 2**30,
+                    sparse=True,
                     storage_domains=[
                         types.StorageDomain(
                             id=storage_domain,
