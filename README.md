@@ -94,6 +94,8 @@ This will scrape the API of ovirt for all the hypervisors regardless of cluster 
 
 There is also a systemd service file to run the script as a service with automatic restarts. 
 
+For the service file to work the ovirt_lib.py has to be in /usr/local/share/ovirt 
+
 
 #### License
 
