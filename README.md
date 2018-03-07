@@ -80,6 +80,21 @@ The ovirtsk4 has quite a few dependencies, YMMV with these instructions. Tested 
 
     pip install -r requirements.txt
 
+### Hypervisor stats 
+
+Nagios compatible simple check script for hypervisors in a cluster, alerting on % of hypervisors in non-up state 
+
+    hypervisor_stats.py -z credentials.conf --nagios --warning 80 --critical 50 --cluster ovirt1 
+
+Will trigger a warning if 20% of the hypervisors are in non-up state (non_operations, maintenance or other) and critical if 50%. 
+
+### Ovirt metrics to graphite 
+
+This will scrape the API of ovirt for all the hypervisors regardless of cluster and push stats to graphite, it will also scrape stats on migrating vms, number of vms total and active vms. Active VM that is moving, will end up in migrating state.
+
+There is also a systemd service file to run the script as a service with automatic restarts. 
+
+
 #### License
 
 This program is free software: you can redistribute it and/or modify

@@ -1,0 +1,13 @@
+[Unit]
+Description=Feed graphite ovirt data
+After=network.target auditd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/share/ovirt/ovirt_metrics_to_graphite.py -z /usr/local/etc/ovirt_api_ro.conf --carbon carbonserver.example.com --carbon-port 2003 --prefix operations.ovirt.hypervisors
+Restart=always
+RestartSec=3
+Environment="PYTHONPATH=$PYTHONPATH:/usr/local/share/ovirt"
+
+[Install]
+WantedBy=multi-user.target
