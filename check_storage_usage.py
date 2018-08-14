@@ -63,7 +63,10 @@ def main():
   info = []
   if (opts.committed and opts.usage):
     print("Please select one check options, used or committed.")
-    sys.exit(0)
+    sys.exit(1)
+  if opts.warning > opts.crit:
+    print("Warning need to be less than critical")
+    sys.exit(1)
   (api, options) = create_api_connection(opts)
   dc_id = get_dc_id(api, opts.dc)
   sds = get_sds(api, dc_id)
