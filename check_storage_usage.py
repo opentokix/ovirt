@@ -50,7 +50,6 @@ def exit_logic(api, info, flags):
     print("CRITICAL: ", ' '.join(info))
     sys.exit(2)
   elif flags['WARNING'] is True:
-    print(info)
     print("WARNING: ", ' '.join(info))
     sys.exit(1)
   else:
